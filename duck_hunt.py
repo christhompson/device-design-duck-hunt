@@ -1,4 +1,7 @@
-# This is a Python Processing port of the Processing Duck Hunt sketch
+#
+# Duck Hunt for 3-axis accelerometer "gun" input
+# @author: Chris Thompson and Daniel Haas
+# @date: 9/15/2012
 #
 
 from accel_gun import get_accel_input

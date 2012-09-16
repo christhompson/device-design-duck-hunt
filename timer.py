@@ -40,6 +40,6 @@ class Timer:
     def DisplayTime(self):
         theTime = self.currentTime()
         fill(255, 0, 0)
-        font = createFont("Arial-Black-48.vlw", 32.0, True)
+        font = createFont("res/Arial-Black-48.vlw", 32.0, True)
         textFont(font)
         text(str(theTime), self.x, self.y)
