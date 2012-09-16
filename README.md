@@ -11,13 +11,13 @@ processed by an Arduino, the code for which is included in `arduino/`.
 This was a homework project for CS294-84 "Device Design" at UC Berkeley, Fall 2012.
 
 Authors
-=======
+-------
 
 * [Chris Thompson](http://www.cs.berkeley.edu/~cthompson)
 * [Daniel Haas](http://www.cs.berkeley.edu/~dhaas)
 
 Acknowledgments
-===============
+---------------
 
 Accelerometer Duck Hunt uses the wonderful
 [processing.py](http://github.com/jdf/processing.py). The game code itself was
@@ -28,7 +28,7 @@ sprite is from willdurand's [DuckHunt](https://github.com/willdurand/DuckHunt)
 project on GitHub.
 
 Requirements
-============
+------------
 
 The only outside requirement is that you have [libnfc](http://www.libnfc.org/)
 installed on your system, and the nfc-poll example is compiled and in your
@@ -37,7 +37,7 @@ libnfc-1.6 following [the instructions for making them work
 together](http://www.ladyada.net/wiki/tutorials/products/rfidnfc/libnfc.html).
 
 License
-=======
+-------
 
 All parts of this program are under the GNU Public License Version 2 (GPLv2),
 except for the included processing.py, which is under the Apache License.
