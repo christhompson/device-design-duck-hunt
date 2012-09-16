@@ -1,8 +1,7 @@
 all:
-	touch players.db
-	touch high_scores.db
+	touch game/players.db
+	touch game/high_scores.db
 
 clean:
-	rm players.db high_scores.db
-	rm *py.class
-
+	rm game/players.db game/high_scores.db
+	rm game/*py.class
