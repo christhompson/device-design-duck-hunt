@@ -34,3 +34,9 @@ The only outside requirement is that you have libnfc installed on your system.
 We have only tested against the PN532-uart on Mac OS 10.8 using libnfc-1.6
 following [the instructions for making them work
 together](http://www.ladyada.net/wiki/tutorials/products/rfidnfc/libnfc.html).
+
+License
+=======
+
+All parts of this program are under the GNU Public License Version 2 (GPLv2),
+except for the included processing.py, which is under the Apache License.
