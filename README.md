@@ -13,8 +13,8 @@ This was a homework project for CS294-84 "Device Design" at UC Berkeley, Fall 20
 Authors
 =======
 
-[Chris Thompson](http://www.cs.berkeley.edu/~cthompson)
-[Daniel Haas](http://www.cs.berkeley.edu/~dhaas)
+* [Chris Thompson](http://www.cs.berkeley.edu/~cthompson)
+* [Daniel Haas](http://www.cs.berkeley.edu/~dhaas)
 
 Acknowledgments
 ===============
@@ -30,9 +30,10 @@ project on GitHub.
 Requirements
 ============
 
-The only outside requirement is that you have libnfc installed on your system.
-We have only tested against the PN532-uart on Mac OS 10.8 using libnfc-1.6
-following [the instructions for making them work
+The only outside requirement is that you have [libnfc](http://www.libnfc.org/)
+installed on your system, and the nfc-poll example is compiled and in your
+path. We have only tested against the PN532-uart on Mac OS 10.8 using
+libnfc-1.6 following [the instructions for making them work
 together](http://www.ladyada.net/wiki/tutorials/products/rfidnfc/libnfc.html).
 
 License
