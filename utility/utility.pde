@@ -1,25 +1,31 @@
 /* Processing code for this example
- 
+
  // Graphing sketch
- 
- 
+
+
  // This program takes ASCII-encoded strings
  // from the serial port at 9600 baud and graphs them. It expects values in the
  // range 0 to 1023, followed by a newline, or newline and carriage return
- 
+
  // Created 20 Apr 2005
  // Updated 18 Jan 2008
  // by Tom Igoe
  // This example code is in the public domain.
 */
- 
+
 import processing.serial.*;
- 
+
 Serial myPort;        // The serial port
 int xPos = 1;        // horizontal position of the graphs
-float accelValueLow = 100; // a very low value output by the accelerometer
-float accelValueHigh = 1000; // a very high value output by the accelerometer
- 
+
+float accelXValueLow = 100; // X-axis accelerometer data to map to graph height 0
+float accelXValueHigh = 1000; // X-axis accelerometer data to map to the top of the graph
+float accelYValueLow = 100; // Y-axis accelerometer data to map to graph height 0
+float accelYValueHigh = 500; // Y-axis accelerometer data to map to the top of the graph
+float accelZValueLow = 100; // Z-axis accelerometer data to map to graph height 0
+float accelZValueHigh = 500; // Z-axis accelerometer data to map to the top of the graph
+
+
 // Variables used when serial input isn't available
 boolean TEST_MODE = false; // if true, random datapoints will be generated and passed in
 float x;
@@ -58,7 +64,7 @@ void drawThresholdLine(float ypos, boolean high) {
   else {
     strokeGrey();
   }
-  
+
   line(0, ypos, 2*width/3, ypos);
   rect(2*width/3-16, ypos-8, 16, 16);
 }
@@ -66,49 +72,49 @@ void drawThresholdLine(float ypos, boolean high) {
 void drawStaticBackground() {
   // set inital background:
   background(0);
-  
+
   // draw a box
   stroke(255, 255, 255);
   fill(255, 255, 255);
   rect(2.0*width/3.0 + 5.0, 5.0, width/3.0 - 10.0, height - 10.0);
-  
+
   // and some header text
   textAlign(CENTER);
   fill(110,110,110);
   text("Accelerometer Data Graphing Utility", 2*width/3, 15, width/3, 50);
-  
+
   // and some labels
   text("X-Axis Data", 2*width/3, height/6-60, width/3, 40);
   text("Y-Axis Data", 2*width/3, height/2-60, width/3, 40);
   text("Z-Axis Data", 2*width/3, 5*height/6-60, width/3, 40);
 
-  text("High Threshold", 2*width/3 + 220, height/6-28, width/3 - 240, 16);   
-  text("Low Threshold", 2*width/3 + 220, height/6+12, width/3 - 240, 16);  
-  text("High Threshold", 2*width/3 + 220, height/2-28, width/3 - 240, 16);  
-  text("Low Threshold", 2*width/3 + 220, height/2+12, width/3 - 240, 16);  
-  text("High Threshold", 2*width/3 + 220, 5*height/6-28, width/3 - 240, 16);  
-  text("Low Threshold", 2*width/3 + 220, 5*height/6+12, width/3 - 240, 16);  
+  text("High Threshold", 2*width/3 + 220, height/6-28, width/3 - 240, 16);
+  text("Low Threshold", 2*width/3 + 220, height/6+12, width/3 - 240, 16);
+  text("High Threshold", 2*width/3 + 220, height/2-28, width/3 - 240, 16);
+  text("Low Threshold", 2*width/3 + 220, height/2+12, width/3 - 240, 16);
+  text("High Threshold", 2*width/3 + 220, 5*height/6-28, width/3 - 240, 16);
+  text("Low Threshold", 2*width/3 + 220, 5*height/6+12, width/3 - 240, 16);
 }
 
 void setup () {
   // set the window size:
   size(1000, 600);
   graphState = new DataPoint[2*width/3];
- 
+
   // List all the available serial ports
   println(Serial.list());
- 
+
   // I know that the first port in the serial list on my mac
   // is always my  Arduino, so I open Serial.list()[0].
   // Open whatever port is the one you're using.
   myPort = new Serial(this, Serial.list()[6], 9600);
- 
+
   // don't generate a serialEvent() unless you get a newline character:
   myPort.bufferUntil('\n');
- 
+
   // draw the static background
   drawStaticBackground();
-  
+
   // and initialize some scrollbars
   xhighScroll = new HScrollbar(2*width/3 + 15, height/6-20, 200, 16, 1);
   xhighScroll.newspos = xhighScroll.xpos + map(xhighThresh, 0, 100, 0, xhighScroll.swidth);
@@ -137,7 +143,7 @@ void drawGraph() {
 void draw () {
   // redraw the static background
   drawStaticBackground();
-  
+
   // update the scrollbars
   xhighScroll.update();
   xlowScroll.update();
@@ -145,7 +151,7 @@ void draw () {
   ylowScroll.update();
   zhighScroll.update();
   zlowScroll.update();
-  
+
   // Set our threshold values based on scollbar position
   xhighThresh = map(xhighScroll.getPos(), 0, 200, 0, 100);
   xlowThresh = map(xlowScroll.getPos(), 0, 200, 0, 100);
@@ -153,17 +159,17 @@ void draw () {
   ylowThresh = map(ylowScroll.getPos(), 0, 200, 0, 100);
   zhighThresh = map(zhighScroll.getPos(), 0, 200, 0, 100);
   zlowThresh = map(zlowScroll.getPos(), 0, 200, 0, 100);
-  
+
   xhighScroll.display();
   xlowScroll.display();
   yhighScroll.display();
   ylowScroll.display();
   zhighScroll.display();
   zlowScroll.display();
-  
+
   // draw the graph
   drawGraph();
-    
+
   // draw the threshold lines
   float xhigh_yPos = map(xhighThresh, 0, 100, height/3, 0);
   float xlow_yPos = map(xlowThresh, 0, 100, height/3, 0);
@@ -187,7 +193,7 @@ void draw () {
     drawThresholdLine(zhigh_yPos, false);
     drawThresholdLine(zlow_yPos, false);
   }
-  
+
   // TESTING ONLY: activate the serialEvent as if the accelerometer has sent new input.
   if (TEST_MODE) {
     serialEvent(myPort);
@@ -197,13 +203,13 @@ void draw () {
 void serialEvent (Serial myPort) {
   float rawX = 0, rawY = 0, rawZ = 0;
   boolean input_valid = false;
-  
+
   // TESTING ONLY: generate random datapoints
   if (TEST_MODE) {
-    if (loopnum % 10 == 0) { 
-      x = random(100, 500);
-      y = random(100, 500);
-      z = random(100, 500);
+    if (loopnum % 10 == 0) {
+      x = random(accelXValueLow, accelXValueHigh);
+      y = random(accelYValueLow, accelYValueHigh);
+      z = random(accelZValueLow, accelZValueHigh);
     }
     loopnum++;
     rawX = x;
@@ -211,22 +217,22 @@ void serialEvent (Serial myPort) {
     rawZ = z;
     input_valid = true;
   }
-  
+
   // Normal mode: read input from the accelerometer over the Serial connection
   else {
-    // get the ASCII string: 
+    // get the ASCII string:
     String inString = myPort.readStringUntil('\n');
     if (inString != null) {
       inString = trim(inString);    // trim off any whitespace:
-     
+
       // split into the three axes of accelerometer input
       String[] xyz = split(inString, ',');
-     
+
       // convert to floats
-      rawX = float(xyz[0]); 
+      rawX = float(xyz[0]);
       rawY = float(xyz[1]);
       rawZ = float(xyz[2]);
-      
+
       input_valid = true;
     }
   }
@@ -236,12 +242,12 @@ void serialEvent (Serial myPort) {
     DataPoint newdp = new DataPoint(rawX, rawY, rawZ);
     graphState[xPos-1] = newdp;
     latest = newdp;
-     
+
     // at the edge of the screen, go back to the beginning:
     if (xPos >= 2*width/3-16) {
       xPos = 1;
       graphState = new DataPoint[2*width/3];
-    } 
+    }
     else {
       // increment the horizontal position:
       xPos++;
@@ -253,42 +259,57 @@ class DataPoint {
   float xVal, yVal, zVal; // accelerometer values for the three axes
   boolean xHigh, yHigh, zHigh; // whether the value was above its high threshold when it was measured
   boolean xLow, yLow, zLow; // whether the value was below its low threshold when it was measured
-  
+
   DataPoint(float _xVal, float _yVal, float _zVal) {
     xVal = _xVal;
     yVal = _yVal;
     zVal = _zVal;
     checkThresholds();
   }
-  
+
   void checkThresholds() {
     // check thresholds against original values
-    float scaledX = map(xVal, accelValueLow, accelValueHigh, 0, 100);
+    float scaledX = map(xVal, accelXValueLow, accelXValueHigh, 0, 100);
     xHigh = scaledX >= xhighThresh;
     xLow = scaledX <= xlowThresh;
-    
-    float scaledY = map(yVal, accelValueLow, accelValueHigh, 0, 100);
+
+    float scaledY = map(yVal, accelYValueLow, accelYValueHigh, 0, 100);
     yHigh = scaledY >= yhighThresh;
     yLow = scaledY <= ylowThresh;
-     
-    float scaledZ = map(zVal, accelValueLow, accelValueHigh, 0, 100);
+
+    float scaledZ = map(zVal, accelZValueLow, accelZValueHigh, 0, 100);
     zHigh = scaledZ >= zhighThresh;
     zLow = scaledZ <= zlowThresh;
   }
-  
-  float normalizeForDisplay(float value) {
-    return map(value, accelValueLow, accelValueHigh, 0, height/3);
+
+  float normalizeForDisplay(float value, char axis) {
+    float avLow = 100, avHigh = 500;
+    switch(axis) {
+      case 'x':
+        avLow = accelXValueLow;
+        avHigh = accelXValueHigh;
+        break;
+      case 'y':
+        avLow = accelYValueLow;
+        avHigh = accelYValueHigh;
+        break;
+      case 'z':
+        avLow = accelZValueLow;
+        avHigh = accelZValueHigh;
+        break;
+    }
+    return map(value, avLow, avHigh, 0, height/3);
   }
-  
+
   void draw(float xPos) {
     stroke(0,0,255);
-    line(xPos, height/3, xPos, height/3 - normalizeForDisplay(xVal));
-    
+    line(xPos, height/3, xPos, height/3 - normalizeForDisplay(xVal, 'x'));
+
     stroke(0,255,0);
-    line(xPos, 2*height/3, xPos, 2*height/3 - normalizeForDisplay(yVal));
-          
+    line(xPos, 2*height/3, xPos, 2*height/3 - normalizeForDisplay(yVal, 'y'));
+
     stroke(255,165,0);
-    line(xPos, height, xPos, height - normalizeForDisplay(zVal));
+    line(xPos, height, xPos, height - normalizeForDisplay(zVal, 'z'));
   }
 }
 
@@ -315,7 +336,7 @@ class HScrollbar {
     sposMax = xpos + swidth - sheight;
     loose = l;
   }
-  
+
   void update() {
     if(overEvent()) {
       over = true;
@@ -335,7 +356,7 @@ class HScrollbar {
       spos = spos + (newspos-spos)/loose;
     }
   }
-  
+
   float constrain(float val, float minv, float maxv) {
     return min(max(val, minv), maxv);
   }
@@ -367,4 +388,4 @@ class HScrollbar {
     return (spos-xpos) * ratio;
   }
 }
- 
+
