@@ -17,8 +17,12 @@ import processing.serial.*;
  
 Serial myPort;        // The serial port
 int xPos = 1;        // horizontal position of the graphs
-float accelValueLow = 100; // a very low value output by the accelerometer
-float accelValueHigh = 500; // a very high value output by the accelerometer
+float accelXValueLow = 100; // X-axis accelerometer data to map to graph height 0
+float accelXValueHigh = 1000; // X-axis accelerometer data to map to the top of the graph
+float accelYValueLow = 100; // Y-axis accelerometer data to map to graph height 0
+float accelYValueHigh = 500; // Y-axis accelerometer data to map to the top of the graph
+float accelZValueLow = 100; // Z-axis accelerometer data to map to graph height 0
+float accelZValueHigh = 500; // Z-axis accelerometer data to map to the top of the graph
  
 // Variables used when serial input isn't available
 boolean TEST_MODE = true; // if true, random datapoints will be generated and passed in
@@ -201,9 +205,9 @@ void serialEvent (Serial myPort) {
   // TESTING ONLY: generate random datapoints
   if (TEST_MODE) {
     if (loopnum % 10 == 0) { 
-      x = random(100, 500);
-      y = random(100, 500);
-      z = random(100, 500);
+      x = random(accelXValueLow, accelXValueHigh);
+      y = random(accelYValueLow, accelYValueHigh);
+      z = random(accelZValueLow, accelZValueHigh);
     }
     loopnum++;
     rawX = x;
@@ -263,32 +267,47 @@ class DataPoint {
   
   void checkThresholds() {
     // check thresholds against original values
-    float scaledX = map(xVal, accelValueLow, accelValueHigh, 0, 100);
+    float scaledX = map(xVal, accelXValueLow, accelXValueHigh, 0, 100);
     xHigh = scaledX >= xhighThresh;
     xLow = scaledX <= xlowThresh;
     
-    float scaledY = map(yVal, accelValueLow, accelValueHigh, 0, 100);
+    float scaledY = map(yVal, accelYValueLow, accelYValueHigh, 0, 100);
     yHigh = scaledY >= yhighThresh;
     yLow = scaledY <= ylowThresh;
      
-    float scaledZ = map(zVal, accelValueLow, accelValueHigh, 0, 100);
+    float scaledZ = map(zVal, accelZValueLow, accelZValueHigh, 0, 100);
     zHigh = scaledZ >= zhighThresh;
     zLow = scaledZ <= zlowThresh;
   }
   
-  float normalizeForDisplay(float value) {
-    return map(value, accelValueLow, accelValueHigh, 0, height/3);
+  float normalizeForDisplay(float value, char axis) {
+    float avLow = 100, avHigh = 500;
+    switch(axis) {
+      case 'x':
+        avLow = accelXValueLow;
+        avHigh = accelXValueHigh;
+        break;
+      case 'y':
+        avLow = accelYValueLow;
+        avHigh = accelYValueHigh;
+        break;
+      case 'z':
+        avLow = accelZValueLow;
+        avHigh = accelZValueHigh;
+        break;
+    }
+    return map(value, avLow, avHigh, 0, height/3);
   }
   
   void draw(float xPos) {
     stroke(0,0,255);
-    line(xPos, height/3, xPos, height/3 - normalizeForDisplay(xVal));
+    line(xPos, height/3, xPos, height/3 - normalizeForDisplay(xVal, 'x'));
     
     stroke(0,255,0);
-    line(xPos, 2*height/3, xPos, 2*height/3 - normalizeForDisplay(yVal));
+    line(xPos, 2*height/3, xPos, 2*height/3 - normalizeForDisplay(yVal, 'y'));
           
     stroke(255,165,0);
-    line(xPos, height, xPos, height - normalizeForDisplay(zVal));
+    line(xPos, height, xPos, height - normalizeForDisplay(zVal, 'z'));
   }
 }
 
