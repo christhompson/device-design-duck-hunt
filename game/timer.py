@@ -14,7 +14,7 @@ class Timer:
 
     def currentTime(self):
         if self.running:
-            return self.beginTime - int(millis() - self.startTime / 1000.0)
+            return self.beginTime - int((millis() - self.startTime) / 1000.0)
         else:
             return self.beginTime - int(self.timeSoFar / 1000.0)
 

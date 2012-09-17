@@ -2,7 +2,8 @@ class Reticule:
     dim = 150
     img = "res/shotgun-reticule-150px.png"
 
-    def __init__(self):
+    def __init__(self, is_mouse):
+        self.is_mouse = is_mouse
         self.dx = 0
         self.dy = 0
         self.img = loadImage(Reticule.img)
@@ -20,16 +21,17 @@ class Reticule:
             self.y - Reticule.dim / 2.0)
 
     def updateLocation(self):
-        self.x = mouseX
-        self.y = mouseY
-
-        # self.x += self.dx
-        # self.y += self.dy
-        # if self.x <= 0:
-        #     self.x = 0
-        # if self.x >= width:
-        #     self.x = width
-        # if self.y <= 0:
-        #     self.y = 0
-        # if self.y >= height:
-        #     self.y = height
+        if self.is_mouse:
+            self.x = mouseX
+            self.y = mouseY
+        else:
+            self.x += self.dx
+            self.y += self.dy
+            if self.x <= 0:
+                self.x = 0
+            if self.x >= width:
+                self.x = width
+            if self.y <= 0:
+                self.y = 0
+            if self.y >= height:
+                self.y = height

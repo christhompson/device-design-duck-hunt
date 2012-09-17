@@ -27,7 +27,8 @@ from processing.serial import Serial
 
 # CONFIGURATION
 NUMDUCKS = 30
-PLAY_TIME = 15000  # 15 seconds
+PLAY_TIME = 15  # 15 seconds
+MOUSE_INPUT = True  # Set to False to use accel gun input
 
 PLAYERS_FILE = "players.db"
 SCORES_FILE = "high_scores.db"
@@ -40,6 +41,7 @@ reticule = None
 timer = None
 player_tuple = None
 gameOn = False
+timer_started = False
 has_updated = False
 
 
@@ -157,8 +159,19 @@ def show_high_scores(player, this_score):
 
 def setup():
     global ducks, NUMDUCKS, numNotHidden, reticule, timer, PLAY_TIME
-    global player_tuple, gameOn
+    global player_tuple, gameOn, timer_started
 
+    if not MOUSE_INPUT:
+        print "Select serial port of accelerometer gun"
+        for i, port in enumerate(Serial.list()):
+            print "[%d] %s" % (i, port)
+        whichPort = int(raw_input())
+        myPort = Serial(this, Serial.list()[whichPort], 9600)
+        myPort.bufferUntil(lf)
+
+    print "Place NFC tag on reader."
+    print "Press [ENTER] to continue..."
+    raw_input()
     (status, player_tuple) = get_player()
     if status != 0:
         print "Error getting player."
@@ -170,11 +183,8 @@ def setup():
         print "Player found."
         print "Total: %d; High: %d" % (player_tuple[1], player_tuple[2])
 
-    print Serial.list()
-    #myPort = Serial(this, Serial.list()[0], 9600)
-    #myPort.bufferUntil(lf)
-
     size(1400, 800)
+    timer_started = False  # Hack to get timer to restart on first frame
     timer = Timer(10, 60, PLAY_TIME)
     timer.start()
     for i in range(NUMDUCKS):
@@ -186,12 +196,18 @@ def setup():
     #     print duck.y
     #     print duck.dx
     #     print duck.dy
-    reticule = Reticule()
+    reticule = Reticule(MOUSE_INPUT)
     gameOn = True
 
 
 def draw():
-    global reticule, ducks, timer, NUMDUCKS, player_tuple, gameOn, has_updated
+    global reticule, ducks, timer, NUMDUCKS, player_tuple, gameOn, timer_started, has_updated
+
+    # Hack to fix timer rundown during setup
+    if not timer_started:
+        timer.restart()
+        timer_started = True
+
     if timer.currentTime() > 0 and numNotHidden > 0:
         background(0, 0, 255)
         timer.DisplayTime()
@@ -230,11 +246,11 @@ def draw():
         show_high_scores(player_tuple, score)
 
 
-def mousePressed():
+def fire(x, y):
     global numNotHidden, ducks, gameOn
     if gameOn:
         for duck in ducks:
-            if duck.getIsVisible() and duck.containsPoint(mouseX, mouseY):
+            if duck.getIsVisible() and duck.containsPoint(x, y):
                 duck.setIsHidden(True)
                 numNotHidden -= 1
         print numNotHidden
@@ -243,17 +259,25 @@ def mousePressed():
             gameOn = False
 
 
-# def serialEvent(port):
-#     """
-#     Reads in the input from the Arduino about the accelerometer.
-#     This is in the form
-#         x,y,z
-#     Each line being one reading from all three axes.
-#     Normalization and warping can be done here, or on the Arduino.
-#     """
-#     global z_window_size, z_window
-#     in_string = port.readString()
-#     get_accel_input(in_string)
+def mousePressed():
+    fire(mouseX, mouseY)
 
+
+def serialEvent(port):
+    """
+    Reads in the input from the Arduino about the accelerometer.
+    This is in the form
+        x,y,z
+    Each line being one reading from all three axes.
+    Normalization and warping can be done here, or on the Arduino.
+    """
+    in_string = port.readString()
+    (x_input, y_input, is_z_flick) = get_accel_input(in_string)
+    reticule.dx = x_input
+    reticule.dy = y_input
+
+    # Fire event
+    if is_z_flick:
+        fire(reticule.x, reticule.y)
 
 run()

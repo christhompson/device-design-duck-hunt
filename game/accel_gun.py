@@ -26,10 +26,14 @@ z_flick_threshold = 20  # FIXME This number is COMPLETELY made up
 
 
 def adjust_x(x):
+    if x < POS_X_THRESHOLD and x > NEG_X_THRESHOLD:
+        return 0.0
     return x - X_ADJUSTMENT
 
 
 def adjust_y(y):
+    if y < POS_Y_THRESHOLD and y > NEG_Y_THRESHOLD:
+        return 0.0
     return y - Y_ADJUSTMENT
 
 
