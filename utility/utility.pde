@@ -18,10 +18,10 @@ import processing.serial.*;
 Serial myPort;        // The serial port
 int xPos = 1;        // horizontal position of the graphs
 float accelValueLow = 100; // a very low value output by the accelerometer
-float accelValueHigh = 500; // a very high value output by the accelerometer
+float accelValueHigh = 1000; // a very high value output by the accelerometer
  
 // Variables used when serial input isn't available
-boolean TEST_MODE = true; // if true, random datapoints will be generated and passed in
+boolean TEST_MODE = false; // if true, random datapoints will be generated and passed in
 float x;
 float y;
 float z;
@@ -70,7 +70,7 @@ void drawStaticBackground() {
   // draw a box
   stroke(255, 255, 255);
   fill(255, 255, 255);
-  rect(2*width/3 + 5, 5, width/3 - 10, height - 10, 7);
+  rect(2.0*width/3.0 + 5.0, 5.0, width/3.0 - 10.0, height - 10.0);
   
   // and some header text
   textAlign(CENTER);
@@ -101,7 +101,7 @@ void setup () {
   // I know that the first port in the serial list on my mac
   // is always my  Arduino, so I open Serial.list()[0].
   // Open whatever port is the one you're using.
-  myPort = new Serial(this, Serial.list()[0], 9600);
+  myPort = new Serial(this, Serial.list()[6], 9600);
  
   // don't generate a serialEvent() unless you get a newline character:
   myPort.bufferUntil('\n');
@@ -220,7 +220,7 @@ void serialEvent (Serial myPort) {
       inString = trim(inString);    // trim off any whitespace:
      
       // split into the three axes of accelerometer input
-      String[] xyz = split(inString, ' ');
+      String[] xyz = split(inString, ',');
      
       // convert to floats
       rawX = float(xyz[0]); 
