@@ -23,12 +23,14 @@ from timer import Timer
 from duck import Duck
 from reticule import Reticule
 from command import run_command
+import processing.serial
 from processing.serial import Serial
+
 
 # CONFIGURATION
 NUMDUCKS = 30
 PLAY_TIME = 15  # 15 seconds
-MOUSE_INPUT = True  # Set to False to use accel gun input
+MOUSE_INPUT = False  # Set to False to use accel gun input
 
 PLAYERS_FILE = "players.db"
 SCORES_FILE = "high_scores.db"
@@ -43,6 +45,7 @@ player_tuple = None
 gameOn = False
 timer_started = False
 has_updated = False
+myPort = None
 
 
 def lookup_player(id):
@@ -159,15 +162,16 @@ def show_high_scores(player, this_score):
 
 def setup():
     global ducks, NUMDUCKS, numNotHidden, reticule, timer, PLAY_TIME
-    global player_tuple, gameOn, timer_started
+    global player_tuple, gameOn, timer_started, myPort
 
     if not MOUSE_INPUT:
         print "Select serial port of accelerometer gun"
         for i, port in enumerate(Serial.list()):
             print "[%d] %s" % (i, port)
-        whichPort = int(raw_input())
+        print ">> ",
+        whichPort = int(raw_input().strip())
         myPort = Serial(this, Serial.list()[whichPort], 9600)
-        myPort.bufferUntil(lf)
+        myPort.bufferUntil(ord('\n'))
 
     print "Place NFC tag on reader."
     print "Press [ENTER] to continue..."
@@ -271,13 +275,20 @@ def serialEvent(port):
     Each line being one reading from all three axes.
     Normalization and warping can be done here, or on the Arduino.
     """
-    in_string = port.readString()
-    (x_input, y_input, is_z_flick) = get_accel_input(in_string)
-    reticule.dx = x_input
-    reticule.dy = y_input
+    print "DEBUG: Serial Event"
+    in_string = myPort.readString()
+    input = get_accel_input(in_string)
+    if input == None:
+        pass  # Failed to get full input, so skip
+    (left_right, down_up, is_fire) = input
 
     # Fire event
-    if is_z_flick:
+    if is_fire:
         fire(reticule.x, reticule.y)
+        reticule.dx = 0
+        reticule.dy = 0
+    else:
+        reticule.dx = left_right
+        reticule.dy = down_up
 
 run()

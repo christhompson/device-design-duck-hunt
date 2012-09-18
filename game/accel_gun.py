@@ -2,70 +2,44 @@
 # Accelerometer gun input
 #
 
-# For simplicity, we store the z gesture in Python source as a list
-from gestures import z_flick_gesture
-from dtw import DTWDistance
-
 # CALIBRATION FOR X AND Y AXES
-X_ADJUSTMENT = 10
-NEG_X_THRESHOLD = -50
-POS_X_THRESHOLD = 50
-X_MIN = -200
-X_MAX = 200
+X_LOW = 308.696
+X_HIGH = 356.522
 
-Y_ADJUSTMENT = 10
-NEG_Y_THRESHOLD = -50
-POS_Y_THRESHOLD = 50
-Y_MIN = -200
-Y_MAX = 200
+Z_LOW = 304.348
+Z_HIGH = 360.870
 
-# Tracking the z-axis window
-z_window_size = 100
-z_window = []
-z_flick_threshold = 20  # FIXME This number is COMPLETELY made up
-
-
-def adjust_x(x):
-    if x < POS_X_THRESHOLD and x > NEG_X_THRESHOLD:
-        return 0.0
-    return x - X_ADJUSTMENT
-
-
-def adjust_y(y):
-    if y < POS_Y_THRESHOLD and y > NEG_Y_THRESHOLD:
-        return 0.0
-    return y - Y_ADJUSTMENT
+SHOOT_THRESHOLD = 314.130
 
 
 def get_accel_input(in_string):
     global z_window, z_window_size
     # Split into axes
     parts = in_string.split(",")
-    x_axis = float(parts[0])
-    y_axis = float(parts[1])
-    z_axis = float(parts[2])
+    if len(parts) != 3:
+        return None
+    x_input = float(parts[0])
+    y_input = float(parts[1])
+    z_input = float(parts[2])
 
-    # Normalize x and y axes
-    # (z can be left untouched, as we sample a gesture and match it)
-    x_input = adjust_x(x_axis)
-    y_input = adjust_y(y_axis)
+    # Threshold axes and detect input
 
-    # Slide the z_window
-    if len(z_window) == z_window_size:
-        z_window.pop()
-    z_window.append(z_axis)
+    left_right = 0
+    if x_input < X_LOW:
+        left_right = -1
+    if x_input > X_HIGH:
+        left_right = 1
 
-    # Two things:
-    # 1) pass normal input to reticule update
-    # 2) detect our "gesture" using DTW on third axis
-    # Since third axis isn't moving normally (much), we can be
-    # generous on our recognition threshold. We collect z-axis on a windowed
-    # basis and compare at each time?
-    d = DTWDistance(z_window, z_flick_gesture)
-    is_z_flick = False
-    if d < z_flick_threshold:
-        is_z_flick = True
-        # Clear the window
-        z_window = []
+    down_up = 0
+    if z_input < Z_LOW:
+        down_up = -1
+    if z_input > Z_HIGH:
+        down_up = 1
 
-    return (x_input, y_input, is_z_flick)
+    fire = 0
+    if y_input > SHOOT_THRESHOLD:
+        fire = True
+
+    print "INPUT: %d, %d, %d" % (left_right, down_up, int(fire))
+
+    return (left_right, down_up, fire)
