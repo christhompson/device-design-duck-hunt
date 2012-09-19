@@ -27,13 +27,13 @@ class Inputs {
 }
 
 class AccelGun {
-  float X_LOW = 308.696;
-  float X_HIGH = 356.522;
+  float X_LOW = 284.783;
+  float X_HIGH = 365.217;
 
-  float Z_LOW = 304.348;
-  float Z_HIGH = 360.870;
+  float Z_LOW = 306.522;
+  float Z_HIGH = 363.043;
 
-  float SHOOT_THRESHOLD = 314.130;
+  float SHOOT_THRESHOLD = 353.261;
   
   AccelGun() {
   }
@@ -66,18 +66,18 @@ class AccelGun {
 
     int left_right = 0;
     if (x_input < X_LOW) {
-        left_right = 5;
+        left_right = 15;
     }    
     if (x_input > X_HIGH) {
-        left_right = -5;
+        left_right = -15;
     }
 
     int down_up = 0;
     if (z_input < Z_LOW) {
-        down_up = 5;
+        down_up = 15;
     }
     if (z_input > Z_HIGH) {
-        down_up = -3;
+        down_up = -15;
     }
 
     boolean fire = false;

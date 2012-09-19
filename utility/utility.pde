@@ -18,12 +18,12 @@ import processing.serial.*;
 Serial myPort;        // The serial port
 int xPos = 1;        // horizontal position of the graphs
 
-float accelXValueLow = 300; // X-axis accelerometer data to map to graph height 0
-float accelXValueHigh = 400; // X-axis accelerometer data to map to the top of the graph
-float accelYValueLow = 200; // Y-axis accelerometer data to map to graph height 0
-float accelYValueHigh = 350; // Y-axis accelerometer data to map to the top of the graph
-float accelZValueLow = 100; // Z-axis accelerometer data to map to graph height 0
-float accelZValueHigh = 500; // Z-axis accelerometer data to map to the top of the graph
+float accelXValueLow = 200; // X-axis accelerometer data to map to graph height 0
+float accelXValueHigh = 600; // X-axis accelerometer data to map to the top of the graph
+float accelYValueLow = 0; // Y-axis accelerometer data to map to graph height 0
+float accelYValueHigh = 1000; // Y-axis accelerometer data to map to the top of the graph
+float accelZValueLow = 200; // Z-axis accelerometer data to map to graph height 0
+float accelZValueHigh = 600; // Z-axis accelerometer data to map to the top of the graph
  
 // Variables used when serial input isn't available
 boolean TEST_MODE = false; // if true, random datapoints will be generated and passed in
@@ -106,7 +106,7 @@ void setup () {
   // I know that the first port in the serial list on my mac
   // is always my  Arduino, so I open Serial.list()[0].
   // Open whatever port is the one you're using.
-  myPort = new Serial(this, Serial.list()[8], 9600);
+  myPort = new Serial(this, Serial.list()[2], 9600);
  
   // don't generate a serialEvent() unless you get a newline character:
   myPort.bufferUntil('\n');

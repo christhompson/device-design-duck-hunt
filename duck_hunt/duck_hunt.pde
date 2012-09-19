@@ -23,7 +23,7 @@ import java.io.*;
 
 // CONFIGURATION
 int NUMDUCKS = 30;
-int PLAY_TIME = 60;  // 15 seconds
+int PLAY_TIME = 20;  // 15 seconds
 boolean MOUSE_INPUT = false;  // Set to False to use accel gun input
 
 String PLAYERS_FILE = "players.db";
@@ -39,8 +39,11 @@ PlayerTuple player_tuple = null;
 boolean gameOn = false;
 boolean timer_started = false;
 boolean has_updated = false;
+boolean arduino_ready = false;
+boolean first_ready_loop = false;
+int nGoFrames = 0;
 Serial myPort = null;
-int whichPort = 8;
+int whichPort = 2;
 int score = 0;
 AccelGun gun = new AccelGun();
 
@@ -64,7 +67,7 @@ PlayerTuple lookup_player(String id) {
     for (int i = 0; i < lines.length; i++) {
         newLines[i] = lines[i];
         String[] parts = split(lines[i], '\t');
-        if (parts[0] == id) {
+        if (parts[0].equals(id)) {
             return new PlayerTuple(id, int(parts[1]), int(parts[2]));
         }
     }
@@ -93,7 +96,6 @@ PlayerTuple get_player() {
     String[] lines = split(res.output, '\n');
     for (int i = 0; i < lines.length; i++) {
         if (lines[i].trim().length() > 14 && lines[i].trim().substring(0,13).equals("UID (NFCID1):")) {
-            println("FOUND LINE");
             tag_uid = lines[i].trim().substring(14);
         }
     }
@@ -121,16 +123,13 @@ void update_scores(PlayerTuple player, int score) {
 
     // Read in player DB, output but change the line for the player
     String[] lines = loadStrings(PLAYERS_FILE);
-    
-    ArrayList updatedLines = new ArrayList();
     for (int i = 0; i < lines.length; i++) {
         String[] parts = split(lines[i], '\t');
-        if (parts[0] == player.id) {
-            updatedLines.add(player.id + "\t" + player.totalScore + "\t" + player.highScore);
-        } else {
-            updatedLines.add(lines[i]);
+        if (parts[0].equals(player.id)) {
+            lines[i] = player.id + "\t" + player_total + "\t" + player_high;
         }
     }
+    saveStrings(PLAYERS_FILE, lines);
 
     // Append score to db
     String[] s = loadStrings(SCORES_FILE);
@@ -176,10 +175,9 @@ void setup() {
     println("Player found.");
     println("Total: " + player_tuple.totalScore + "; High: " + player_tuple.highScore);
 
-    size(1400, 800);
-    timer_started = false;  // Hack to get timer to restart on first frame
+    size(1200, 800);
+    frameRate(30);
     timer = new Timer(10, 60, PLAY_TIME);
-    timer.start();
     for (int i = 0; i < NUMDUCKS; i++) {
         ducks.add(new Duck(int(random(150, 1200)), 500));
     }
@@ -192,14 +190,29 @@ void draw() {
     //global reticule, ducks, timer, NUMDUCKS, player_tuple, gameOn, timer_started, has_updated
 
     // Hack to fix timer rundown during setup
-    if (!timer_started) {
-        timer.restart();
+    if (!timer_started && arduino_ready) {
+        timer.start();
         timer_started = true;
     }
 
     if (timer.currentTime() > 0 && numNotHidden > 0) {
         background(0, 0, 255);
         timer.DisplayTime();
+        if (!arduino_ready) {
+          fill(255, 0, 0);
+          PFont font = createFont("res/Arial-Black-48.vlw", 64.0, true);
+          textFont(font);
+          text("Loading...", 80, 200);
+        }
+        else if (first_ready_loop) {
+          fill(255,0,0);
+          PFont font = createFont("res/Arial-Black-48.vlw", 64.0, true);
+          textFont(font);
+          text("Go!", 80, 200);
+          if (++nGoFrames > 10) {
+            first_ready_loop = false;
+          }
+        }
         fill(0, 255, 0);
         rect(0, 600, 1400, 200);
         for (int i = 0; i < ducks.size(); i++) {
@@ -240,6 +253,8 @@ void draw() {
         }
         show_high_scores(player_tuple, score);
     }
+    fill(0,0,0);
+    text(frameRate, 1000, 700);
 }
 
 void fire(int x, int y) {
@@ -252,7 +267,6 @@ void fire(int x, int y) {
                 numNotHidden -= 1;
             }
         }
-        println(numNotHidden);
         if (numNotHidden == 0) {
             println("Game Over");
             gameOn = false;
@@ -272,26 +286,27 @@ void serialEvent(Serial myPort) {
     //Each line being one reading from all three axes.
     //Normalization and warping can be done here, or on the Arduino.
     //"""
-    print("DEBUG: Serial Event");
     String in_string = myPort.readStringUntil('\n');
     Inputs i = gun.get_accel_input(in_string);
     if (i == null) {
         return;  // Failed to get full input, so skip
     }
 
-    println(in_string);
-    
     if (gameOn) {
+      if (!arduino_ready) {
+        arduino_ready = true;
+        first_ready_loop = true;
+      }
 
-    // Fire event
-    if (i.fire) {
+      // Fire event
+      if (i.fire) {
         fire(reticule.x, reticule.y);
         reticule.dx = 0;
         reticule.dy = 0;
-    } else {
+      } else {
         reticule.dx = i.leftRight;
         reticule.dy = i.downUp;
-    }
+      }
     }
 }
 
